@@ -10,13 +10,17 @@ sources:
     type: table
 
 transforms:
-  base_src:
+  scatter_src:
     type: table_source
     source: main
     table: test_data
+  curve_src:
+    type: table_source
+    source: main
+    table: lines
 
 tools:
-  coverage:
+  xy_hover:
     type: hover
     tooltips:
       - ["x", '@x']
@@ -26,20 +30,27 @@ opts:
   scatter:
     type: generic
     tools:
-      - coverage
+      - xy_hover
     size: 10
+  line:
+    type: generic
+    tools:
+      - xy_hover
+
 
 views:
   xy_scatter:
     type: scatter
-    source: base_src
+    source: scatter_src
     opts:
       - scatter
   xy_line:
-    type: scatter
-    source: base_src
+    type: curve
+    source: curve_src
+    x: x
+    y: y1
     opts:
-      - scatter
+      - line
 
 controllers:
   - mwe

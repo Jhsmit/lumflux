@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pathlib import Path
 
 import panel as pn
@@ -25,6 +27,7 @@ def has_precedence(p: param.Parameter) -> bool:
     else:
         return False
 
+
 class HasWidgets(param.Parameterized):
     """Base class for object which generate widgets from their parameters."""
 
@@ -43,17 +46,18 @@ class HasWidgets(param.Parameterized):
         self._box = self.make_box()
 
     @property
-    def own_widget_names(self):
+    def own_widget_names(self) -> list[str]:
         return [name for name in self.widgets.keys() if name not in self._excluded]
 
     @property
-    def layout(self):
+    def layout(self) -> list[tuple]:
         return [
             ("self", self.own_widget_names),
         ]
 
     def make_box(self):
-        return pn.Column(*self.widget_list, name=self.header, width=SIDEBAR_WIDTH)
+        name = getattr(self, 'header', None)
+        return pn.Column(*self.widget_list, name=name, width=SIDEBAR_WIDTH)
 
     def update_box(self, *events):
         self._box[:] = self.widget_list
@@ -72,6 +76,7 @@ class HasWidgets(param.Parameterized):
 
         return widgets_layout.get_widgets()
 
+    # TODO this should move to some kind of layout resolving class
     @property
     def widget_list(self) -> list:
         """Resolves a `layout` definition to a list of widgets
@@ -98,7 +103,9 @@ class HasWidgets(param.Parameterized):
                 if hasattr(obj, "widgets"):
                     for item in obj.widgets.values():
                         widget_list.append(get_view(item))
+                # Not sure if we should keep supporting putting .panels in layouts
                 else:
+                    print(f'The object {obj!r} has a panel property')
                     panel = obj.panel
                     if isinstance(panel, pn.layout.ListLike):
                         for item in panel:
@@ -107,8 +114,6 @@ class HasWidgets(param.Parameterized):
                         widget_list.append(get_view(panel))
 
         return widget_list
-
-
 
 
 class ControlPanel(HasWidgets):

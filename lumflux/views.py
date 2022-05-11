@@ -9,15 +9,16 @@ import numpy as np
 import pandas as pd
 import panel as pn
 import param
-from holoviews.streams import Pipe
+from holoviews.streams import Pipe, Params
 from panel.pane.base import PaneBase
 
 from lumflux.sources import Source
 from lumflux.transforms import Transform
 from lumflux.pane import LoggingMarkdown
+from lumflux.base import HasWidgets
 
 
-class View(param.Parameterized):
+class View(HasWidgets):
     """Base view object.
 
     Inspired by Holoviz Lumen's View objects"""
@@ -41,37 +42,9 @@ class View(param.Parameterized):
         # todo allow for kwargs to be passed to DynamicMap's func
 
         for dep in self.dependencies:
-            dep.param.watch(self._update, ["updated"])
-
-        self.widgets = self.make_dict()
+            dep.param.watch(self.update, ["updated"])
 
         self._panel = None
-        self._updates = None  # what does this do?
-
-    def _update(self, *events):
-        self.update()  # todo or just catch events in the update function?  (probably this)
-
-    def make_dict(self):
-        # todo baseclass filter/controller/view with the same widget generation logic?
-        """dict of widgets to be shown
-        override this method to get custom mapping
-
-        """
-        return self.generate_widgets()
-
-    def generate_widgets(self, **kwargs):
-        """returns a dict with keys parameter names and values default mapped widgets"""
-
-        names = [
-            p
-            for p in self.param
-            if self.param[p].precedence is None or self.param[p].precedence > 1
-        ]
-        widgets = pn.Param(
-            self.param, show_name=False, show_labels=True, widgets=kwargs
-        )
-
-        return {k: v for k, v in zip(names[1:], widgets)}
 
     def get_data(self) -> pd.DataFrame:  # refactor get?
         """
@@ -93,12 +66,6 @@ class View(param.Parameterized):
         indicating whether a rerender is required.
         """
 
-        # todo clenaup
-        if self._panel is not None:
-            self._cleanup()
-            self._updates = self._get_params()
-            if self._updates is not None:
-                return False
         self._panel = self.get_panel()
         return True
 
@@ -122,7 +89,6 @@ class View(param.Parameterized):
 
         return opts_dict
 
-#TODO Also needs generate widgets base class
 class hvView(View):
 
     source = param.ClassSelector(
@@ -135,42 +101,24 @@ class hvView(View):
 
     _type = None
 
+    _stream = param.ClassSelector(class_=Pipe)
+
     def __init__(self, **params):
         super().__init__(**params)
-        self._stream = None
+        self._get_params()
 
     @param.depends("source.updated", watch=True)
-    def update(self):
-        """
-        Triggers an update in the View.
+    def update(self, *events) -> None:
+        """Triggers an update of the view.
 
-        Returns
-        -------
-        stale : bool
-            Whether the panel on the View is stale and needs to be
-            rerendered.
+        The source is queried for new data and this is sent to the `_stream` object.
+
         """
-        # Skip events triggered by a parameter change on this View
-        # own_parameters = [self.param[p] for p in self.param]
-        # own_events = events and all(
-        #     isinstance(e.obj, ParamFilter) and
-        #     (e.obj.parameter in own_parameters or
-        #     e.new is self._ls.selection_expr)
-        #     for e in events
-        # )
-        # if own_events:
-        #     return False
-        # if invalidate_cache:
-        #     self._cache = None
-        if self._stream is None:
-            return self._update_panel()
         if self.get_data() is not None:
             self._stream.send(self.get_data())
-        return False
 
     def get_panel(self):
         kwargs = self._get_params()
-        # interactive? https://github.com/holoviz/panel/issues/1824
         return pn.pane.HoloViews(linked_axes=False, **kwargs)  # linked_axes=False??
 
     def _get_params(self):
@@ -185,22 +133,21 @@ class hvView(View):
 
     @property
     def panel(self):
-        if isinstance(self._panel, PaneBase):
-            pane = self._panel
-            if len(pane.layout) == 1 and pane._unpack:
-                return pane.layout[0]
-            return pane._layout
-        return self._panel
+        return self.get_panel()
 
 
 class hvCurveView(hvView):
     _type = "curve"
 
-    x = param.String(
-        None, doc="The column to render on the x-axis."
-    )  # todo these should be selectors
+    x = param.Selector(
+        default=None,
+        doc="The column to render on the x-axis."
+    )
 
-    y = param.String(None, doc="The column to render on the y-axis.")
+    y = param.Selector(
+        default=None,
+        objects=['y1', 'y2', 'y3'],
+        doc="The column to render on the y-axis.")
 
     def __init__(self, **params):
         # baseclass??
@@ -220,7 +167,10 @@ class hvCurveView(hvView):
         """
 
         func = partial(hv.Curve, kdims=self.kdims, vdims=self.vdims)
-        plot = hv.DynamicMap(func, streams=[self._stream])
+#        plot = hv.DynamicMap(func, streams=[self._stream)
+        param_stream = Params(parameterized=self, parameters=['x', 'y'], rename={'x':'kdims', 'y': 'vdims'})
+        plot = hv.DynamicMap(func, streams=[self._stream, param_stream])
+
         plot = plot.apply.opts(**self.opts_dict)
 
         return plot

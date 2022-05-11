@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import time
 
 import param
@@ -65,6 +67,14 @@ class MWEControl(ControlPanel):
 
         return widgets
 
+    @property
+    def layout(self) -> list[tuple]:
+        return [
+            ('self', None),
+            ('views.xy_line', None)
+        ]
+
+
 app_spec = yaml.safe_load(Path("app_spec.yaml").read_text(encoding="utf-8"))
 
 ctr = AppConstructor(errors='warn')
@@ -75,10 +85,16 @@ df = pd.DataFrame(
 )
 ctrl.sources['main'].set_table('test_data', df)
 
+
+df = pd.DataFrame(
+    {'x': np.arange(10), 'y1': np.random.rand(10), 'y2': np.random.rand(10), 'y3': np.random.rand(10)}
+)
+ctrl.sources['main'].set_table('lines', df)
+
 mwe_control = ctrl.control_panels['MWEControl']
 
 buttons = mwe_control.panel
-graphs = pn.Column(ctrl.views['xy_scatter'].get_panel(), ctrl.views['xy_line'].get_panel())
+graphs = pn.Column(ctrl.views['xy_scatter'].panel, ctrl.views['xy_line'].panel)
 
 app = pn.Row(buttons, graphs)
 
