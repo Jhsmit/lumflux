@@ -94,7 +94,11 @@ ctrl.sources['main'].set_table('lines', df)
 mwe_control = ctrl.control_panels['MWEControl']
 
 buttons = mwe_control.panel
-graphs = pn.Column(ctrl.views['xy_scatter'].panel, ctrl.views['xy_line'].panel)
+graphs = pn.Column(
+    ctrl.views['xy_scatter'].panel,
+    ctrl.views['xy_line'].panel,
+    ctrl.views['bars'].panel
+)
 
 app = pn.Row(buttons, graphs)
 

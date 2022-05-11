@@ -36,6 +36,7 @@ opts:
     type: generic
     tools:
       - xy_hover
+    framewise: True
 
 
 views:
@@ -47,10 +48,15 @@ views:
   xy_line:
     type: curve
     source: curve_src
-    x: x
     y: y1
+    y_objects:
+      - y1
+      - y2
     opts:
       - line
+  bars:
+    type: bars
+    source: curve_src
 
 controllers:
   - mwe
