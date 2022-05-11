@@ -2,6 +2,8 @@ import param
 import yaml
 from pathlib import Path
 import panel as pn
+import pandas as pd
+import numpy as np
 
 from lumflux.base import ControlPanel
 from lumflux.constructor import AppConstructor
@@ -14,6 +16,11 @@ class MWEControl(ControlPanel):
 
     def _action_button(self):
         print('Button was pressed')
+        df = pd.DataFrame(
+            {'x': np.arange(10), 'y': np.random.rand(10)}
+        )
+
+        self.sources['main'].add_table('test_data', df)
 
 
 app_spec = yaml.safe_load(Path("app_spec.yaml").read_text(encoding="utf-8"))
@@ -21,6 +28,10 @@ app_spec = yaml.safe_load(Path("app_spec.yaml").read_text(encoding="utf-8"))
 ctr = AppConstructor()
 ctrl = ctr.parse(app_spec)
 
+df = pd.DataFrame(
+    {'x': np.arange(10), 'y': np.random.rand(10)}
+)
+ctrl.sources['main'].add_table('test_data', df)
 
 mwe_control = ctrl.control_panels['MWEControl']
 
