@@ -42,12 +42,13 @@ class TableSource(Source):
         table = next(iter(self.tables.keys())) if self.tables else 'main'
         self.add_table(table, df)
 
+    # todo set table?
     def add_table(self, table: str, df: pd.DataFrame) -> None:
         table_hash = hash_dataframe(df)
         self.hashes[table] = table_hash
         self.tables[table] = df
 
-        # todo self.updated = True? (yes because right now this is done manually (?))
+        self.updated = True
 
     def get_table(self, table):
         df = self.tables.get(table, None)
