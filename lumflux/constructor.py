@@ -1,11 +1,7 @@
 from __future__ import annotations
 
 import collections
-from typing import Any
-
-from distributed import Client
-
-from pyhdx.local_cluster import default_client
+from typing import Any, Optional
 
 from lumflux.base import ControlPanel
 from lumflux.support import gen_subclasses
@@ -21,6 +17,12 @@ element_count = 0
 
 
 class AppConstructor(param.Parameterized):
+
+    errors = param.Selector(
+        default='raise',
+        objects=['raise', 'warn', 'ignore'],
+        doc="Set error handling behaviour"
+    )
 
     sources = param.Dict(
         default={},
@@ -66,7 +68,7 @@ class AppConstructor(param.Parameterized):
 
     def __init__(self, **params):
         super().__init__(**params)
-        self.classes = self.find_classes()
+        self.classes = self.find_classes(duplicates=self.errors)
 
     def parse(self, app_spec: dict, **kwargs) -> MainController:
         self._parse_sections(app_spec)
@@ -93,7 +95,14 @@ class AppConstructor(param.Parameterized):
         return ctrl
 
     @staticmethod
-    def find_classes() -> dict[str, Any]:  # Todo base class for everything
+    def find_classes(duplicates: Optional[str] = 'raise') -> dict[str, dict[str: Any]]:  # Todo base class for everything
+        """Returns a nested dict with implementations of all lumflux element types
+
+        # todo define nomenclature ('types'?
+        Keys in the dict are the main types ('main', 'transform', 'source', etc), values
+        are subdicts of {_type: cls}
+
+        """
         base_classes = {
             "main": MainController,
             "transform": Transform,
@@ -103,23 +112,28 @@ class AppConstructor(param.Parameterized):
             "controller": ControlPanel,
         }
         classes = {}
-        for key, cls in base_classes.items():
-            base_cls = base_classes[key]
+        for key, base_cls in base_classes.items():
             all_classes = list(
                 [cls for cls in gen_subclasses(base_cls) if getattr(cls, "_type", None)]
             )
             all_classes.append(base_cls)
-            types = [cls._type for cls in all_classes]
-            if len(types) != len(set(types)):
-                duplicate_items = [
-                    item
-                    for item, count in collections.Counter(types).items()
-                    if count > 1
-                ]
-                raise ValueError(
-                    f"Multiple implementations of {key!r} found with the same type: {duplicate_items}"
-                )
-            class_dict = {cls._type: cls for cls in all_classes}
+
+            class_dict = {}
+            for cls in all_classes:
+                if cls._type in class_dict:
+                    message = \
+                        f"Multiple implementations of {cls._type!r} found with the same type:"\
+                        f"current: {cls}, existing: {class_dict[cls._type]}"
+                    if duplicates == 'raise':
+                        raise ValueError(message)
+                    elif duplicates == 'warn':
+                        warnings.warn(message)
+                    elif duplicates == 'ignore':
+                        pass
+                    else:
+                        raise ValueError(f"Invalid value for 'duplicates': {duplicates}")
+                class_dict[cls._type] = cls
+
             classes[key] = class_dict
 
         classes["tool"] = supported_tools

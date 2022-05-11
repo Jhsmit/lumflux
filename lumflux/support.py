@@ -1,11 +1,13 @@
-from typing import Generator, Any, Type, TypeVar, Optional, Union
+from typing import Generator, Any, Type, TypeVar, Optional, Union, Callable
 
 import pandas as pd
 import numpy as np
 from matplotlib.colors import Colormap, Normalize
+import panel as pn
 
 import hashlib
 
+from lumflux.widgets import WidgetView
 
 
 def hash_dataframe(df: pd.DataFrame, method="builtin") -> str:
@@ -123,3 +125,10 @@ def make_tuple(item: Any) -> Any:
         return tuple((key, make_tuple(value)) for key, value in item.items())
     else:
         return item
+
+def get_view(widget: Union[pn.widgets.Widget, WidgetView]) -> Union[pn.widgets.Widget, Callable]:
+    """If the widget object has a `view` attribute, return this, otherwise return the widget"""
+    if hasattr(widget, "view"):
+        return widget.view
+    else:
+        return widget

@@ -4,16 +4,122 @@ import panel as pn
 import param
 
 from lumflux.main_controllers import MainController
-from pyhdx.web.template import SIDEBAR_WIDTH
-from pyhdx.web.utils import get_view
-
-
+from lumflux.template import SIDEBAR_WIDTH # TODO move to layout config file
+from lumflux.support import get_view
+from lumflux.param import Param
 
 STATIC_DIR = Path(__file__).parent / "static"
 
 
-class ControlPanel(param.Parameterized):
-    """base class for left control pannels"""
+def has_precedence(p: param.Parameter) -> bool:
+    """Checks the precedence of a parameter.
+
+    Returns:
+        `True` if the `precedence` is None or larger or equal then zero, else `False`.
+
+    """
+    if p.precedence is None:
+        return True
+    elif p.precedence >= 0:
+        return True
+    else:
+        return False
+
+class HasWidgets(param.Parameterized):
+    """Base class for object which generate widgets from their parameters."""
+
+    _type = None
+
+    _excluded = param.List(
+        [],
+        precedence=-1,
+        doc="Parameters whose widgets are excluded from the control panel view. "
+            "This list can be modified to update widget layout",
+    )
+
+    def __init__(self, **params):
+        super().__init__(**params)
+        self.widgets = self.generate_widgets()
+        self._box = self.make_box()
+
+    @property
+    def own_widget_names(self):
+        return [name for name in self.widgets.keys() if name not in self._excluded]
+
+    @property
+    def layout(self):
+        return [
+            ("self", self.own_widget_names),
+        ]
+
+    def make_box(self):
+        return pn.Column(*self.widget_list, name=self.header, width=SIDEBAR_WIDTH)
+
+    def update_box(self, *events):
+        self._box[:] = self.widget_list
+
+    def generate_widgets(self, **kwargs):
+        """returns a dict with keys parameter names and values default mapped widgets"""
+
+        # Get all parameters with precedence >= 1 and not starting with '_', excluding 'name'
+        parameters = {p_name for p_name in self.param if not p_name.startswith('_')}
+        parameters -= {'name'}
+        parameters -= {p_name for p_name, par in self.param.objects().items() if not has_precedence(par)}
+
+        widgets_layout = Param(
+            self.param, show_labels=True, widgets=kwargs, parameters=list(parameters)
+        )
+
+        return widgets_layout.get_widgets()
+
+    @property
+    def widget_list(self) -> list:
+        """Resolves a `layout` definition to a list of widgets
+
+        Returns:
+            List of widgets
+
+        """
+
+        widget_list = []
+        for widget_source, contents in self.layout:
+            if widget_source == "self":
+                obj = self
+            else:
+                _type, name = widget_source.split(".")
+                obj = getattr(self, _type)[name]
+
+            if isinstance(contents, list):
+                for item in contents:
+                    widget_list.append(get_view(obj.widgets[item]))
+            elif isinstance(contents, str):
+                widget_list.append(get_view(obj.widgets[contents]))
+            elif contents is None:
+                if hasattr(obj, "widgets"):
+                    for item in obj.widgets.values():
+                        widget_list.append(get_view(item))
+                else:
+                    panel = obj.panel
+                    if isinstance(panel, pn.layout.ListLike):
+                        for item in panel:
+                            widget_list.append(get_view(item))
+                    else:
+                        widget_list.append(get_view(panel))
+
+        return widget_list
+
+
+
+
+class ControlPanel(HasWidgets):
+    """Base class for control panels.
+
+    Control panels typically have buttons and input widgets, triggering data operations,
+    and publishing the result on the respective sources, thereby pushing it to the views.
+    All control panels have access to the app's main controller as `parent` attribute. This
+    main controller has dicts containing all views, transforms and sources in the app.
+
+    """
 
     _type = None
 
@@ -21,39 +127,22 @@ class ControlPanel(param.Parameterized):
 
     parent = param.ClassSelector(MainController, precedence=-1)
 
-    _excluded = param.List(
-        [],
-        precedence=-1,
-        doc="parameters whose widgets are excluded from the control panel view. This list can be modified to update "
-        "widget layout",
-    )
-
     def __init__(self, parent, **params):
-        # self.parent = parent
-        # self.ex
         super(ControlPanel, self).__init__(parent=parent, **params)
 
-        self.widgets = self.make_dict()
-        self._box = self.make_box()  # _panel equivalent
 
         # bind update function when any transform triggers a redraw of widgets
-        if self._layout:
-            for widget_source, contents in self._layout:
+        if self.layout:
+            for widget_source, contents in self.layout:
                 if widget_source != "self":
                     _type, name = widget_source.split(".")
                     if _type == "transforms":
                         obj = getattr(self, _type)[name]
                         obj.param.watch(self.update_box, ["redrawn"])
 
-    @property  # todo base class
-    def own_widget_names(self):
-        return [name for name in self.widgets.keys() if name not in self._excluded]
 
-    @property
-    def _layout(self):
-        return [
-            ("self", self.own_widget_names),
-        ]
+
+
 
     @property
     def sources(self):
@@ -71,103 +160,6 @@ class ControlPanel(param.Parameterized):
     def views(self):
         return self.parent.views
 
-    def make_box(self):
-        return pn.Column(*self.widget_list, name=self.header, width=SIDEBAR_WIDTH)
-
-    def _update_box(self, *events):
-        self.update_box()
-
-    def update_box(self, *events):
-        self._box[:] = self.widget_list
-
-    def generate_widgets(self, **kwargs):
-        """returns a dict with keys parameter names and values default mapped widgets"""
-
-        # todo sort by precedence
-        names = [
-            p
-            for p in self.param
-            if self.param[p].precedence is None or self.param[p].precedence > 1
-        ]
-        widgets = pn.Param(
-            self.param, show_name=False, show_labels=True, widgets=kwargs
-        )
-
-        return {k: v for k, v in zip(names[1:], widgets)}
-
-    @property
-    def widget_list(self):
-        """
-
-        Example _layout definitions
-
-        Returns
-        -------
-
-        """
-
-        try:
-            self._layout
-        except AttributeError:
-            return [get_view(widget) for widget in self.widgets.values()]
-
-        if self._layout is None:
-            return [get_view(widget) for widget in self.widgets.values()]
-        else:
-            widget_list = []
-            for widget_source, contents in self._layout:
-                if widget_source == "self":
-                    object = self
-                else:
-                    _type, name = widget_source.split(".")
-                    object = getattr(self, _type)[name]
-
-                if isinstance(contents, list):
-                    for item in contents:
-                        widget_list.append(get_view(object.widgets[item]))
-                elif isinstance(contents, str):
-                    widget_list.append(get_view(object.widgets[contents]))
-                elif contents is None:
-                    if hasattr(object, "widgets"):
-                        for item in object.widgets.values():
-                            widget_list.append(get_view(item))
-                    else:
-                        panel = object.panel
-                        if isinstance(panel, pn.layout.ListLike):
-                            for item in panel:
-                                widget_list.append(get_view(item))
-                        else:
-                            widget_list.append(get_view(panel))
-
-        return widget_list
-
-    def make_dict(self):
-        """dict of widgets to be shown
-        override this method to get custom mapping
-
-        """
-        return self.generate_widgets()
-
-    def box_index(self, p_name_or_widget):
-        "" "return the index of the widget in the box with parameter p_name"
-        if isinstance(p_name_or_widget, str):
-            return list(self._box).index(self.widget_dict[p_name_or_widget])
-        else:
-            return list(self._box).index(p_name_or_widget)
-
-    def box_pop(self, p_name_or_widget):
-        """remove the widget with parameter name name from the box"""
-        index = self.box_index(p_name_or_widget)
-        self._box.pop(index)
-
-    def box_insert_after(self, name_or_widget_after, name_or_widget_insert):
-        """insert widget corresponding to parameter with name after the widget name_after"""
-        index = self.box_index(name_or_widget_after)
-        if isinstance(name_or_widget_insert, str):
-            widget = self.widget_dict[name_or_widget_insert]
-        else:
-            widget = name_or_widget_insert
-        self._box.insert(index + 1, widget)
 
     def get_widget(self, param_name, widget_type, **kwargs):
         """get a single widget with for parameter param_name with type widget_type"""
@@ -177,6 +169,7 @@ class ControlPanel(param.Parameterized):
             getattr(self.param, param_name), widget_type, **kwargs
         )[0]
 
+    # todo check if this is the right thing to implement for panel
     @property
     def panel(self):
         return self._box

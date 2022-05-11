@@ -10,7 +10,6 @@ import pandas as pd
 import panel as pn
 import param
 from holoviews.streams import Pipe
-from hvplot import hvPlotTabular
 from panel.pane.base import PaneBase
 
 from lumflux.sources import Source
@@ -26,13 +25,15 @@ class View(param.Parameterized):
     _type = None
 
     opts = param.List(
-        default=[], doc="list of opts dicts to apply on the plot", precedence=-1
+        default=[],
+        doc="List of opts dicts to apply on the plot",
+        precedence=-1
     )
 
     dependencies = param.List(
         default=[],
-        precedence=-1,
         doc="Additional dependencies which trigger update when their `updated` event fires",
+        precedence=-1,
     )
 
     def __init__(self, **params):
@@ -72,18 +73,15 @@ class View(param.Parameterized):
 
         return {k: v for k, v in zip(names[1:], widgets)}
 
-    def get_data(self):  # refactor get?
+    def get_data(self) -> pd.DataFrame:  # refactor get?
         """
         Queries the Source
 
         Returns
         -------
         DataFrame
-            The queried table after filtering and transformations are
-            applied.
+
         """
-        # if self._cache is not None:
-        #     return self._cache
 
         df = self.source.get()
 
@@ -193,44 +191,6 @@ class hvView(View):
                 return pane.layout[0]
             return pane._layout
         return self._panel
-
-
-class hvPlotView(hvView):
-    _type = "hvplot"
-
-    kind = param.String()
-
-    def __init__(self, **params):
-        self.kwargs = {k: v for k, v in params.items() if k not in self.param}
-        super().__init__(**{k: v for k, v in params.items() if k in self.param})
-        self._stream = None
-
-    def get_plot(self):
-        """
-
-        Parameters
-        ----------
-        df
-
-        Returns
-        -------
-
-        """
-
-        def func(data, kind, **kwargs):
-            return hvPlotTabular(data)(kind=kind, **kwargs)
-
-        pfunc = partial(func, kind=self.kind, **self.kwargs)
-
-        plot = hv.DynamicMap(pfunc, streams=[self._stream])
-        plot = plot.apply.opts(**self.opts_dict)
-
-        return plot
-
-    @property
-    def empty_df(self):
-        df = pd.DataFrame({"null": [np.nan], "y2": [np.nan]})
-        return df
 
 
 class hvCurveView(hvView):
