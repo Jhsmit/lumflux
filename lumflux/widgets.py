@@ -1,7 +1,9 @@
+from typing import Union, Iterable
+
 import panel as pn
 import param
 
-from asyncio import as_completed
+from asyncio import as_completed, Future
 from abc import abstractmethod
 
 
@@ -20,7 +22,7 @@ class ASyncProgressBar(WidgetView):
 
     active = param.Boolean(False, doc="Toggles the progress bar 'active' display mode")
 
-    async def run(self, futures):
+    async def run(self, futures: Iterable[Future]) -> None:
         self.active = True
         for task in as_completed(futures):
             await task
@@ -30,9 +32,8 @@ class ASyncProgressBar(WidgetView):
         self.reset()
 
     @property
-    def value(self):
+    def value(self) -> int:
         value = int(100 * (self.completed / self.num_tasks))
-        # todo check why this is sometimes out of bounds
         value = max(0, min(value, 100))
 
         if value == 0 and self.active:
@@ -40,14 +41,14 @@ class ASyncProgressBar(WidgetView):
         else:
             return value
 
-    def reset(self):
+    def reset(self) -> None:
         self.completed = 0
 
-    def increment(self):
+    def increment(self) -> None:
         self.completed += 1
 
     @param.depends("completed", "num_tasks", "active")
-    def view(self):
+    def view(self) -> Union[pn.widgets.Progress, pn.layout.Spacer]:
         if self.value != 0:
             return pn.widgets.Progress(
                 active=self.active,
@@ -56,7 +57,7 @@ class ASyncProgressBar(WidgetView):
                 sizing_mode="stretch_width",
             )
         else:
-            return pn.layout.Column()  # Or size 0 spacer?
+            return pn.layout.Spacer()
 
 
 
