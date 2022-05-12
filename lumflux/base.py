@@ -62,8 +62,8 @@ class HasWidgets(param.Parameterized):
     def update_box(self, *events):
         self._box[:] = self.widget_list
 
-    def generate_widgets(self, **kwargs):
-        """returns a dict with keys parameter names and values default mapped widgets"""
+    def generate_widgets(self, **kwargs) -> dict[str, pn.widgets.Widget]:
+        """Creates a dict with keys parameter names and values default mapped widgets"""
 
         # Get all parameters with precedence >= 1 and not starting with '_', excluding 'name'
         parameters = {p_name for p_name in self.param if not p_name.startswith('_')}
@@ -145,10 +145,6 @@ class ControlPanel(HasWidgets):
                         obj = getattr(self, _type)[name]
                         obj.param.watch(self.update_box, ["redrawn"])
 
-
-
-
-
     @property
     def sources(self):
         return self.parent.sources
@@ -164,7 +160,6 @@ class ControlPanel(HasWidgets):
     @property
     def views(self):
         return self.parent.views
-
 
     def get_widget(self, param_name, widget_type, **kwargs):
         """get a single widget with for parameter param_name with type widget_type"""
