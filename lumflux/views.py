@@ -170,12 +170,12 @@ class hvXYView(hvView):
         """
         data = self.get_data()
         if data is not None:
-            x_objects = set(data.columns)
+            x_objects = set(data.columns) | {data.index.name}
             if self.x_objects is not None:
                 x_objects &= set(self.x_objects)
             self.param['x'].objects = list(x_objects)
 
-            y_objects = set(data.columns)
+            y_objects = set(data.columns) | {data.index.name}
             if self.y_objects is not None:
                 y_objects &= set(self.y_objects)
             self.param['y'].objects = list(y_objects)
