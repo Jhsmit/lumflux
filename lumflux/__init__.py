@@ -1,4 +1,4 @@
-"""Top-level package for Lumflux."""
+"""Top-level package for lumflux."""
 
 __author__ = """Jochem H. Smit"""
 __email__ = 'jhsmit@gmail.com'
