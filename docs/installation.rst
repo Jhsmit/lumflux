@@ -8,7 +8,7 @@ Installation
 Stable release
 --------------
 
-To install Lumflux, run this command in your terminal:
+To install ``lumflux`` , run this command in your terminal:
 
 .. code-block:: console
 
