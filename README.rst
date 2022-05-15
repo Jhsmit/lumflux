@@ -1,5 +1,5 @@
 =======
-Lumflux
+lumflux
 =======
 
 
@@ -23,7 +23,7 @@ Illuminating data web applications.
 About
 -----
 
-LumFlux illuminates your path towards developing interactive web applications.
+Lumflux illuminates your path towards developing interactive web applications.
 
 It is based on `panel <https://github.com/holoviz/panel>`_ and inspired by `lumen <https://github.com/holoviz/lumen>`_.
 
