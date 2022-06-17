@@ -9,7 +9,7 @@ import param
 from lumflux.main_controllers import MainController
 from lumflux.template import SIDEBAR_WIDTH # TODO move to layout config file
 from lumflux.support import get_view
-from lumflux.param import Param
+from lumflux.patch import Param
 
 STATIC_DIR = Path(__file__).parent / "static"
 
