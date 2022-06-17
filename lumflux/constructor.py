@@ -3,7 +3,7 @@ from __future__ import annotations
 import collections
 from typing import Any, Optional
 
-from lumflux.base import ControlPanel
+from lumflux.controllers import ControlPanel
 from lumflux.support import gen_subclasses
 from lumflux.main_controllers import MainController
 from lumflux.opts import OptsBase
