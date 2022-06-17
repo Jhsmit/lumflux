@@ -1,0 +1,19 @@
+config:
+  title: MWE test app
+
+main_controller:
+  type: base
+  #kwargs: ...
+
+sources:
+  main:
+    type: table
+
+
+views:
+  dataframe:
+    type: dataframe
+    source: main
+
+controllers:
+  - file_input
