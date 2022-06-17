@@ -41,6 +41,10 @@ class View(HasWidgets):
         precedence=-1,
     )
 
+    source = param.ClassSelector(
+        class_=Source
+    )
+
     def __init__(self, **params):
         super().__init__(**params)
         # todo allow for kwargs to be passed to DynamicMap's func
@@ -92,6 +96,38 @@ class View(HasWidgets):
                     opts_dict[k] = v
 
         return opts_dict
+
+# lumen `Panel` view?
+# https://github.com/holoviz/lumen/commit/da632cfeee8346991fef772faf54319312cc3642
+class DataFrameView(View):
+
+    _type = 'dataframe'
+
+    def get_panel(self):
+        data = self.get_data()
+        if data is not None:
+            return pn.pane.DataFrame(object=data, sizing_mode='stretch_both')
+
+    def _update_panel(self, *events):
+        """
+        Updates the cached Panel object and returns a boolean value
+        indicating whether a rerender is required.
+        """
+        if self._panel is None:
+            self._panel = self.get_panel()
+        else:
+            self._panel.object = self.get_data()
+        return True
+
+
+    @param.depends("source.updated", watch=True)
+    def update(self, *events) -> None:
+        self._update_panel()
+
+    @property
+    def panel(self):
+        return self._panel
+
 
 class hvView(View):
 

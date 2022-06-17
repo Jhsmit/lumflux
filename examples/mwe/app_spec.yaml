@@ -49,9 +49,7 @@ views:
     type: curve
     source: curve_src
     y: y1
-    y_objects:
-      - y1
-      - y2
+    y_objects: !regexp y\d
     opts:
       - line
   bars:

@@ -12,6 +12,7 @@ import numpy as np
 from lumflux.base import ControlPanel
 from lumflux.constructor import AppConstructor
 from lumflux.widgets import ASyncProgressBar
+from lumflux.loader import load_spec
 
 
 class MWEControl(ControlPanel):
@@ -75,7 +76,7 @@ class MWEControl(ControlPanel):
         ]
 
 
-app_spec = yaml.safe_load(Path("app_spec.yaml").read_text(encoding="utf-8"))
+app_spec = load_spec("app_spec.yaml")
 
 ctr = AppConstructor(errors='warn')
 ctrl = ctr.parse(app_spec)
