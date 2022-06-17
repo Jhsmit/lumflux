@@ -1,5 +1,5 @@
 =======
-Lumflux
+lumflux
 =======
 
 
@@ -23,12 +23,13 @@ Illuminating data web applications.
 About
 -----
 
-LumFlux tries to illuminate your path to making interactive web applications.
+Lumflux illuminates your path towards developing interactive web applications.
 
-It is based on Panel and inspired by Lumen
+It is based on `panel <https://github.com/holoviz/panel>`_ and inspired by `lumen <https://github.com/holoviz/lumen>`_.
 
-LumFlux is used in the PyHDX web application.
+LumFlux was originally developed for the PyHDX web application (`GitHub <https://github.com/Jhsmit/PyHDX>`_, `web application <http://pyhdx.jhsmit.org/>`_)
 
+The project is in early alpha but in a somewhat working state. Have a look in the `examples` directory to get started. API is extremely likely to change.  
 
 Features
 --------

@@ -1,4 +1,4 @@
-Welcome to Lumflux's documentation!
+Welcome to lumflux's documentation!
 ======================================
 
 .. toctree::
