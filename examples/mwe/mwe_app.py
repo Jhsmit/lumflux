@@ -42,7 +42,7 @@ class MWEControl(ControlPanel):
             df = pd.DataFrame(
                 {'x': np.arange(10), 'y': np.random.rand(10)}
             )
-            self.sources['main'].set_table('test_data', df)
+            self.sources['main'].set(df, "test_data")
 
             time.sleep(0.25*np.random.rand())
 
@@ -84,13 +84,13 @@ ctrl = ctr.parse(app_spec)
 df = pd.DataFrame(
     {'x': np.arange(10), 'y': np.random.rand(10)}
 )
-ctrl.sources['main'].set_table('test_data', df)
+ctrl.sources['main'].set(df, 'test_data')
 
 
 df = pd.DataFrame(
     {'x': np.arange(10), 'y1': np.random.rand(10), 'y2': np.random.rand(10), 'y3': np.random.rand(10)}
 )
-ctrl.sources['main'].set_table('lines', df)
+ctrl.sources['main'].set(df, 'lines')
 
 mwe_control = ctrl.control_panels['MWEControl']
 
