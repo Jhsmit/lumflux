@@ -34,21 +34,6 @@ class FileInputControl(ControlPanel):
     def _action_button(self):
         print('Button was pressed')
 
-        num_tasks = np.random.randint(4, 12)
-        pbar = self.widgets["pbar"]
-        pbar.num_tasks = num_tasks
-        for i in range(num_tasks):
-            pbar.completed += 1
-
-            df = pd.DataFrame(
-                {'x': np.arange(10), 'y': np.random.rand(10)}
-            )
-            self.sources['main'].set_table('test_data', df)
-
-            time.sleep(0.25*np.random.rand())
-
-        pbar.reset()
-
     def generate_widgets(self, **kwargs) -> dict:
         """Generates widgets
 
@@ -76,7 +61,7 @@ class FileInputControl(ControlPanel):
         df = pd.read_csv(sio)
         print(df)
 
-        self.sources['main'].set(df)
+        self.sources['main'].set(df, 'main')
 
 
     @property
@@ -94,7 +79,7 @@ ctrl = ctr.parse(app_spec)
 df = pd.DataFrame(
     {'x': np.arange(10), 'y': np.random.rand(10)}
 )
-ctrl.sources['main'].set_table('main', df)
+ctrl.sources['main'].set(df, 'main')
 
 
 mwe_control = ctrl.control_panels['FileInputControl']

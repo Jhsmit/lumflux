@@ -144,7 +144,7 @@ class TableSourceTransform(Transform):
     # todo allow auto generate widgets as in control panels /  views
 
     def get(self):
-        df = self.source.get_table(
+        df = self.source.get(
             self.table
         )  # returns None on KeyError #todo change to source.get_table
         return df
@@ -154,7 +154,8 @@ class TableSourceTransform(Transform):
         return self.source.hashes.get(self.table, hash(None))
 
     def _update_options(self):
-        options = self.source.get_tables()
+        # options = self.source.get_tables()
+        options = list(self.source.keys())
         if self.table_options:
             options = [t for t in options if t in self.table_options]
         self.param["table"].objects = options
