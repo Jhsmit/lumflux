@@ -200,9 +200,18 @@ class AppConstructor(param.Parameterized):
                 if v is None:
                     resolved[k] = v
                 else:
-                    obj = self.sources.get(v) or self.transforms.get(
-                        v
-                    )  # can be none in case of logging
+                    # obj = self.sources.get(v) or self.transforms.get(
+                    #     v
+                    # )  # can be none in case of logging
+
+                    if v in self.sources:
+                        obj = self.sources[v]
+                    elif v in self.transforms:
+                        obj = self.transforms[v]
+                    else:
+                        obj = None
+
+
                     resolved[k] = obj
             elif k == "sources":
                 # v should be a dict: src_type (view spec): src_name
