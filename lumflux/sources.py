@@ -23,7 +23,7 @@ class Source(param.Parameterized):
 
 class GenericSource(Source):
 
-    content = param.Dict(default={})
+    contents = param.Dict(default={})
 
     hashes = param.Dict(default={})
 
@@ -33,36 +33,36 @@ class GenericSource(Source):
     )
 
     def make_room(self):
-        if self.max_items and self.content:
-            first_key = next(iter(self.content))
-            self.content.pop(first_key)
+        if self.max_items and self.contents:
+            first_key = next(iter(self.contents))
+            self.contents.pop(first_key)
 
     def set(self, item, name=None):
         self.make_room()
         name = name or uuid.uuid4()
         self.hashes[name] = self.hash_item(item)
-        self.content[name] = item
+        self.contents[name] = item
 
         self.updated = True
 
     def get(self, name: Optional[str] = None) -> Any:
-        if not self.content:
+        if not self.contents:
             return None
         else:
             name = name or next(iter(self.keys()))
-            return self.content.get(name)
+            return self.contents.get(name)
 
     def hash_item(self, item) -> int:
         return hash(item)
 
     def keys(self) -> KeysView:
-        return self.content.keys()
+        return self.contents.keys()
 
     def items(self) -> ItemsView:
-        return self.content.items()
+        return self.contents.items()
 
     def values(self) -> ValuesView:
-        return self.content.values()
+        return self.contents.values()
 
 
 class TableSource(GenericSource):

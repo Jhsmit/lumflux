@@ -1,4 +1,4 @@
-from typing import Generator, Any, Type, TypeVar, Optional, Union, Callable
+from typing import Generator, Any, Type, TypeVar, Optional, Union, Callable, Literal
 
 import pandas as pd
 import numpy as np
@@ -10,7 +10,7 @@ import hashlib
 from lumflux.widgets import WidgetView
 
 
-def hash_dataframe(df: pd.DataFrame, method="builtin") -> str:
+def hash_dataframe(df: pd.DataFrame, method: Literal["builtin", "md5"] = "builtin") -> str:
     if method == "builtin":
         tup = (
             *pd.util.hash_pandas_object(df, index=True).values,
