@@ -21,6 +21,8 @@ from lumflux.transforms import Transform
 from lumflux.pane import LoggingMarkdown
 from lumflux.base import HasWidgets
 
+from hvplot import hvPlotTabular
+
 
 class View(HasWidgets):
     """Base view object.
@@ -65,8 +67,10 @@ class View(HasWidgets):
         """
 
         df = self.source.get()
-
-        return df
+        if df is None:
+            return self.empty_df
+        else:
+            return df
 
     def _update_panel(self, *events):
         """
@@ -145,7 +149,9 @@ class hvView(View):
 
     def __init__(self, **params):
         super().__init__(**params)
-        self._get_params()
+        data = self.get_data()
+        self._stream = Pipe(data=data)
+        #self._get_params()
 
     @param.depends("source.updated", watch=True)
     def update(self, *events) -> None:
@@ -163,11 +169,11 @@ class hvView(View):
         return pn.pane.HoloViews(linked_axes=False, **kwargs)  # linked_axes=False??
 
     def _get_params(self):
-        df = self.get_data()
-        if df is None:
-            df = self.empty_df
-
-        self._stream = Pipe(data=df)
+        # df = self.get_data()
+        # if df is None:
+        #     df = self.empty_df
+        #
+        # self._stream = Pipe(data=df)
         return dict(
             object=self.get_plot(), sizing_mode="stretch_both"
         )  # todo update sizing mode
@@ -175,6 +181,45 @@ class hvView(View):
     @property
     def panel(self):
         return self.get_panel()
+
+
+class hvPlotView(hvView):
+    _type = "hvplot"
+
+    kind = param.String()
+
+    def __init__(self, **params):
+        self.kwargs = {k: v for k, v in params.items() if k not in self.param}
+        super().__init__(**{k: v for k, v in params.items() if k in self.param})
+
+    def get_plot(self):
+        """
+
+        Parameters
+        ----------
+        df
+
+        Returns
+        -------
+
+        """
+
+        def func(data, kind, **kwargs):
+            return hvPlotTabular(data)(kind=kind, **kwargs)
+
+        pfunc = partial(func, kind=self.kind, **self.kwargs)
+
+        plot = hv.DynamicMap(pfunc, streams=[self._stream])
+
+        print(self.opts_dict)
+        plot = plot.apply.opts(**self.opts_dict)
+
+        return plot
+
+    @property
+    def empty_df(self):
+        df = pd.DataFrame({"null": [np.nan], "y2": [np.nan]})
+        return df
 
 
 class hvXYView(hvView):
@@ -286,7 +331,7 @@ class hvScatterAppView(hvXYView):
             parameterized=self,
             parameters=['x', 'y'],
             rename={'x': 'kdims', 'y': 'vdims'})
-        plot = hv.DynamicMap(func, streams=[self._stream, param_stream])
+        plot = hv.DynamicMap(hv.Scatter, streams=[self._stream, param_stream])
         plot = plot.apply.opts(**self.opts_dict)
 
         return plot

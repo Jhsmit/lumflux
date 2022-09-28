@@ -20,7 +20,9 @@ class FileInputControl(ControlPanel):
 
     single_file = param.Parameter()
 
-    test_button = param.Action(lambda self: self._action_button())
+    test_button = param.Action(lambda self: self._action_button(), label="Reset")
+
+    index_col = param.Integer(0, bounds=(0, None))
 
     _not_a_number = param.Number(123)
 
@@ -32,7 +34,7 @@ class FileInputControl(ControlPanel):
     )
 
     def _action_button(self):
-        print('Button was pressed')
+        self.single_file = None
 
     def generate_widgets(self, **kwargs) -> dict:
         """Generates widgets
@@ -56,13 +58,20 @@ class FileInputControl(ControlPanel):
 
     @param.depends('single_file', watch=True)
     def _file_input_updated(self):
+        if self.single_file is None:
+            return
+
         sio = StringIO(self.single_file.decode('UTF-8'))
 
-        df = pd.read_csv(sio)
-        print(df)
+        df = pd.read_csv(sio, **self.kwargs)
 
         self.sources['main'].set(df, 'main')
 
+    @property
+    def kwargs(self):
+        return {
+            "index_col": self.index_col
+        }
 
     @property
     def layout(self) -> list[tuple]:

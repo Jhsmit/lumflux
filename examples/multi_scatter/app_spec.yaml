@@ -1,0 +1,36 @@
+config:
+  title: Multi Scatter App
+
+main_controller:
+  type: base
+
+sources:
+  main:
+    type: table
+
+transforms:
+  scatter_src:
+    type: table_source
+    source: main
+    table: test_data
+
+
+opts:
+  scatter_opt:
+    type: generic
+    framewise: True
+    xlabel: Position
+    ylabel: Value
+    show_legend: False
+
+views:
+  xy_scatter:
+    type: hvplot
+    source: scatter_src
+    kind: scatter
+    opts:
+      - scatter_opt
+
+
+controllers:
+  - scatter
