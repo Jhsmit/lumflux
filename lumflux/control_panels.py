@@ -63,9 +63,11 @@ class ControlPanel(HasWidgets):
         if isinstance(objects, set):
             objects = list(objects)
         if isinstance(objects, list):
-            default = objects[0]
+            autodefault = objects[0]
         elif isinstance(objects, dict):
-            default = next(iter(objects.values()))
+            autodefault = next(iter(objects.values()))
+        else:
+            raise TypeError("Invalid type for 'objects', must be 'set', 'list' or 'dict'")
 
         self.param[param_name].objects = objects
 
