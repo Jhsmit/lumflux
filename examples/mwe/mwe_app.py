@@ -92,7 +92,7 @@ df = pd.DataFrame(
 )
 ctrl.sources['main'].set(df, 'lines')
 
-mwe_control = ctrl.control_panels['MWEControl']
+mwe_control = ctrl.control_panels['mwe_controller']
 
 buttons = mwe_control.panel
 graphs = pn.Column(

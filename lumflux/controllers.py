@@ -1,6 +1,7 @@
 import param
 from lumflux.main_controllers import MainController
 from lumflux.base import HasWidgets
+
 import panel as pn
 
 
@@ -16,7 +17,7 @@ class ControlPanel(HasWidgets):
 
     _type = None
 
-    header = "Default Header"
+    header = param.String("Default Header") # todo derive header from _type
 
     parent = param.ClassSelector(MainController, precedence=-1)
 
@@ -56,6 +57,22 @@ class ControlPanel(HasWidgets):
         return pn.Param.get_widget(
             getattr(self.param, param_name), widget_type, **kwargs
         )[0]
+
+    def set_objects(self, param_name: str, objects, default=None, empty_default=False):
+
+        if isinstance(objects, set):
+            objects = list(objects)
+        if isinstance(objects, list):
+            default = objects[0]
+        elif isinstance(objects, dict):
+            default = next(iter(objects.values()))
+
+        self.param[param_name].objects = objects
+
+        default = autodefault if (not empty_default and default is None) else default
+        if default:
+            setattr(self, param_name, default)
+
 
     # todo check if this is the right thing to implement for panel
     @property

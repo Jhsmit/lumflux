@@ -50,8 +50,8 @@ class MainController(param.Parameterized):
         # check for client adress in config
 
         self.control_panels = {
-            ctrl.name: ctrl(self) for ctrl in control_panels
-        }  # todo as param?
+            spec["name"]: klass(self, **spec) for klass, spec in control_panels
+        }
 
         self.template = None  # Panel template (remove?)
 

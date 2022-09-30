@@ -63,7 +63,7 @@ graphs = pn.Column(
     width=800,
 )
 
-ctrl = main_ctrl.control_panels['ScatterControl']
+ctrl = main_ctrl.control_panels['scatter']
 buttons = ctrl.panel
 app = pn.Row(buttons, graphs)
 

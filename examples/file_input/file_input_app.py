@@ -89,9 +89,7 @@ df = pd.DataFrame(
     {'x': np.arange(10), 'y': np.random.rand(10)}
 )
 ctrl.sources['main'].set(df, 'main')
-
-
-mwe_control = ctrl.control_panels['FileInputControl']
+mwe_control = ctrl.control_panels['file_input']
 
 buttons = mwe_control.panel
 graphs = pn.Column(

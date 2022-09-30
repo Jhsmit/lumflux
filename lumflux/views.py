@@ -112,6 +112,10 @@ class DataFrameView(View):
         if data is not None:
             return pn.pane.DataFrame(object=data, sizing_mode='stretch_both')
 
+    @property
+    def empty_df(self):
+        return None
+
     def _update_panel(self, *events):
         """
         Updates the cached Panel object and returns a boolean value

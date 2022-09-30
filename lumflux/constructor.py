@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import collections
-from typing import Any, Optional
+from typing import Any, Optional, Type
 
 from lumflux.controllers import ControlPanel
 from lumflux.support import gen_subclasses
@@ -75,21 +75,29 @@ class AppConstructor(param.Parameterized):
         for name, dic in app_spec.get("modules", {}).items():
             self._parse_sections(dic)
 
-        d = app_spec["controllers"]
-        controllers = {name: self._resolve_class(name, "controller") for name in d}
+        if isinstance(app_spec["controllers"], list):
+            control_panel_spec = {_type: {"type": _type} for _type in app_spec["controllers"]}
+        else:
+            control_panel_spec = app_spec["controllers"]
 
-        main_ctrl = app_spec["main_controller"]
-        _type = main_ctrl.pop("type")
-        main_ctrl_class = self._resolve_class(_type, "main")
+        control_panels: list[tuple[Type[ControlPanel]], dict] = []
+        for name, spec in control_panel_spec.items():
+            spec["name"] = name
+            klass = self._resolve_class(spec.pop("type"), "controller")
+            control_panels.append((klass, spec))
+
+
+        main_ctrl_spec = app_spec["main_controller"]
+        main_ctrl_class = self._resolve_class(main_ctrl_spec.pop("type"), "main")
         ctrl = main_ctrl_class(
-            controllers.values(),
+            control_panels,
             sources=self.sources,
             transforms=self.transforms,
             opts=self.opts,
             views=self.views,
             loggers=self.loggers,
             **kwargs,
-            **main_ctrl,
+            **main_ctrl_spec,
         )
 
         return ctrl
