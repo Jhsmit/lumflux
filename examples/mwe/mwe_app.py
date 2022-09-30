@@ -9,7 +9,7 @@ import panel as pn
 import pandas as pd
 import numpy as np
 
-from lumflux.controllers import ControlPanel
+from lumflux.control_panels import ControlPanel
 from lumflux.constructor import AppConstructor
 from lumflux.widgets import ASyncProgressBar
 from lumflux.loader import load_spec

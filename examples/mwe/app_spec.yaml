@@ -56,7 +56,7 @@ views:
     type: bars
     source: curve_src
 
-controllers:
+control_panels:
     mwe_controller:
         type: mwe
         header: MyController

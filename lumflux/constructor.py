@@ -3,7 +3,7 @@ from __future__ import annotations
 import collections
 from typing import Any, Optional, Type
 
-from lumflux.controllers import ControlPanel
+from lumflux.control_panels import ControlPanel
 from lumflux.support import gen_subclasses
 from lumflux.main_controllers import MainController
 from lumflux.opts import OptsBase
@@ -75,15 +75,15 @@ class AppConstructor(param.Parameterized):
         for name, dic in app_spec.get("modules", {}).items():
             self._parse_sections(dic)
 
-        if isinstance(app_spec["controllers"], list):
-            control_panel_spec = {_type: {"type": _type} for _type in app_spec["controllers"]}
+        if isinstance(app_spec["control_panels"], list):
+            control_panel_spec = {_type: {"type": _type} for _type in app_spec["control_panels"]}
         else:
-            control_panel_spec = app_spec["controllers"]
+            control_panel_spec = app_spec["control_panels"]
 
         control_panels: list[tuple[Type[ControlPanel]], dict] = []
         for name, spec in control_panel_spec.items():
             spec["name"] = name
-            klass = self._resolve_class(spec.pop("type"), "controller")
+            klass = self._resolve_class(spec.pop("type"), "control_panels")
             control_panels.append((klass, spec))
 
 
@@ -117,7 +117,7 @@ class AppConstructor(param.Parameterized):
             "source": Source,
             "view": View,
             "opt": OptsBase,
-            "controller": ControlPanel,
+            "control_panels": ControlPanel,
         }
         classes = {}
         for key, base_cls in base_classes.items():
@@ -255,7 +255,7 @@ class AppConstructor(param.Parameterized):
                 resolved[k] = [self.tools[vi] for vi in v]
             elif (
                 k == "dependencies"
-            ):  # dependencies are opts/transforms/controllers? (anything with .updated event)
+            ):  # dependencies are opts/transforms/control_panels? (anything with .updated event)
                 all_objects = []
                 for type_, obj_list in v.items():
                     for obj in obj_list:

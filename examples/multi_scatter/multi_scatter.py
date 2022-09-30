@@ -9,7 +9,7 @@ import panel as pn
 import pandas as pd
 import numpy as np
 import string
-from lumflux.controllers import ControlPanel
+from lumflux.control_panels import ControlPanel
 from lumflux.constructor import AppConstructor
 from lumflux.loader import load_spec
 

@@ -15,5 +15,5 @@ views:
     type: dataframe
     source: main
 
-controllers:
+control_panels:
   - file_input
