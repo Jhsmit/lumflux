@@ -2,15 +2,16 @@ from __future__ import annotations
 
 import time
 from io import StringIO
+from pathlib import Path
 
 import param
 import panel as pn
 import pandas as pd
 import numpy as np
+import yaml
 
 from lumflux.control_panels import ControlPanel
 from lumflux.constructor import AppConstructor
-from lumflux.loader import load_spec
 
 
 class FileInputControl(ControlPanel):
@@ -80,7 +81,7 @@ class FileInputControl(ControlPanel):
         ]
 
 
-app_spec = load_spec("app_spec.yaml")
+app_spec = yaml.safe_load(Path("app_spec.yaml").read_text())
 
 ctr = AppConstructor(errors='warn')
 ctrl = ctr.parse(app_spec)

@@ -11,7 +11,6 @@ import numpy as np
 import string
 from lumflux.control_panels import ControlPanel
 from lumflux.constructor import AppConstructor
-from lumflux.loader import load_spec
 
 rng = np.random.default_rng(seed=43)
 
@@ -49,11 +48,8 @@ class ScatterControl(ControlPanel):
         self.sources['main'].set(df, "test_data")
 
 
-
-app_spec = load_spec("app_spec.yaml")
-
 ctr = AppConstructor(errors='warn')
-main_ctrl = ctr.parse(app_spec)
+main_ctrl = ctr.parse_yaml("app_spec.yaml")
 
 df = pd.read_csv('pd_dataframe.csv', index_col=0)
 main_ctrl.sources['main'].set(df, 'test_data')

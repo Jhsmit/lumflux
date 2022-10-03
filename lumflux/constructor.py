@@ -1,7 +1,10 @@
 from __future__ import annotations
-
+import re
 import collections
-from typing import Any, Optional, Type
+from pathlib import Path
+from typing import Any, Optional, Type, Union
+
+import yaml
 
 from lumflux.control_panels import ControlPanel
 from lumflux.support import gen_subclasses
@@ -70,7 +73,50 @@ class AppConstructor(param.Parameterized):
         super().__init__(**params)
         self.classes = self.find_classes(duplicates=self.errors)
 
+    def get_loader(self) -> Type[yaml.SafeLoader]:
+        """
+        Adds additional constructors to yaml's default SafeLoader. Aads constructing of regular expressions.
+
+        Returns:
+            Updated yaml SafeLoader
+
+        """
+        yaml_loader = yaml.SafeLoader
+        yaml_loader.add_constructor(u'!regexp', lambda loader, node: re.compile(loader.construct_scalar(node)))
+
+        return yaml_loader
+
+    def parse_yaml(self, yaml_path: Union[Path[str], str], loader: Optional[yaml.Loader] = None, **kwargs) -> MainController:
+        """
+        Parse an app specification from a yaml file.
+
+        Args:
+            yaml_path: Path of the yaml file to parse.
+            loader: Optional custom yaml loader to use.
+            **kwargs: Additional kwargs to pass to the application's MainController
+
+        Returns:
+            The MainController instance for the application.
+        """
+
+        stream = Path(yaml_path).read_text(encoding='utf-8')
+        loader = loader or self.get_loader()
+        spec = yaml.load(stream, loader)
+
+        return self.parse(spec, **kwargs)
+
     def parse(self, app_spec: dict, **kwargs) -> MainController:
+        """
+        Parse an app specification from a yaml file.
+
+        Args:
+            app_spec: Application specification dictionary to parse.
+            **kwargs: Additional kwargs to pass to the application's MainController.
+
+        Returns:
+            The MainController instance for the application.
+        """
+
         self._parse_sections(app_spec)
         for name, dic in app_spec.get("modules", {}).items():
             self._parse_sections(dic)

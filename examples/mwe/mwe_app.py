@@ -12,7 +12,6 @@ import numpy as np
 from lumflux.control_panels import ControlPanel
 from lumflux.constructor import AppConstructor
 from lumflux.widgets import ASyncProgressBar
-from lumflux.loader import load_spec
 
 
 class MWEControl(ControlPanel):
@@ -76,10 +75,10 @@ class MWEControl(ControlPanel):
         ]
 
 
-app_spec = load_spec("app_spec.yaml")
+#app_spec = yaml.safe_load("app_spec.yaml")
 
 ctr = AppConstructor(errors='warn')
-ctrl = ctr.parse(app_spec)
+ctrl = ctr.parse_yaml("app_spec.yaml")
 
 df = pd.DataFrame(
     {'x': np.arange(10), 'y': np.random.rand(10)}
