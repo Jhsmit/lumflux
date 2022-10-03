@@ -27,30 +27,34 @@ class GenericSource(Source):
 
     hashes = param.Dict(default={})
 
-    max_items = param.Integer(
-        default=0,
-        doc="""Maximum number of items allowed in this source"""
-    )
+    @property
+    def singular(self) -> bool:
+        return len(self.contents) == 1
 
-    def make_room(self):
-        if self.max_items and self.contents:
-            first_key = next(iter(self.contents))
-            self.contents.pop(first_key)
+    @property
+    def empty(self) -> bool:
+        return len(self.contents) == 0
 
     def set(self, item, name=None):
-        self.make_room()
-        name = name or uuid.uuid4()
+        if self.empty and name is None:
+            name = uuid.uuid4()
+        # Overwriting the current item
+        elif self.singular and name is None:
+            name = next(iter(self.keys()))
+        elif name is None:
+            raise ValueError("No name given for new source item.")
+
         self.hashes[name] = self.hash_item(item)
         self.contents[name] = item
-
         self.updated = True
 
     def get(self, name: Optional[str] = None) -> Any:
-        if not self.contents:
+        if self.empty:
             return None
-        else:
-            name = name or next(iter(self.keys()))
-            return self.contents.get(name)
+        elif self.singular and name is None:
+            name = next(iter(self.keys()))
+
+        return self.contents.get(name)
 
     def hash_item(self, item) -> int:
         return hash(item)
@@ -63,6 +67,7 @@ class GenericSource(Source):
 
     def values(self) -> ValuesView:
         return self.contents.values()
+
 
 
 class TableSource(GenericSource):
