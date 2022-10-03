@@ -18,7 +18,9 @@ class MWEControl(ControlPanel):
 
     _type = 'mwe'
 
-    test_button = param.Action(lambda self: self._action_button())
+    gen_data = param.Action(lambda self: self._action_button())
+
+    test = param.Action(lambda self: self._test_button())
 
     _not_a_number = param.Number(123)
 
@@ -28,6 +30,10 @@ class MWEControl(ControlPanel):
         doc="Temperature of the reaction",
         label="Temperature (K)"
     )
+
+    def _test_button(self):
+        print(self.sources['main'].contents)
+        print(self.sources['main'].hashes)
 
     def _action_button(self):
         print('Button was pressed')
@@ -83,13 +89,17 @@ ctrl = ctr.parse_yaml("app_spec.yaml")
 df = pd.DataFrame(
     {'x': np.arange(10), 'y': np.random.rand(10)}
 )
-ctrl.sources['main'].set(df, 'test_data')
 
+
+ctrl.sources['main'].set(df, 'test_data')
+print('Set data 1')
 
 df = pd.DataFrame(
     {'x': np.arange(10), 'y1': np.random.rand(10), 'y2': np.random.rand(10), 'y3': np.random.rand(10)}
 )
 ctrl.sources['main'].set(df, 'lines')
+
+print('Set data 2')
 
 mwe_control = ctrl.control_panels['mwe_controller']
 

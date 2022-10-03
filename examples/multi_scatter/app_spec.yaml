@@ -8,12 +8,6 @@ sources:
   main:
     type: table
 
-transforms:
-  scatter_src:
-    type: table_source
-    source: main
-    table: test_data
-
 
 opts:
   scatter_opt:
@@ -26,7 +20,7 @@ opts:
 views:
   xy_scatter:
     type: hvplot
-    source: scatter_src
+    source: main
     kind: scatter
     opts:
       - scatter_opt

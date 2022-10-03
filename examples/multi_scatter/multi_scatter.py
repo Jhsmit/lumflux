@@ -45,14 +45,21 @@ class ScatterControl(ControlPanel):
             data[:, i] = y
 
         df = pd.DataFrame(data, index=x, columns=columns)
-        self.sources['main'].set(df, "test_data")
+        self.sources['main'].set(df)
 
 
 ctr = AppConstructor(errors='warn')
 main_ctrl = ctr.parse_yaml("app_spec.yaml")
 
 df = pd.read_csv('pd_dataframe.csv', index_col=0)
-main_ctrl.sources['main'].set(df, 'test_data')
+main_ctrl.sources['main'].set(df)
+
+
+
+df = main_ctrl.sources['main'].get()
+
+print(df)
+
 
 graphs = pn.Column(
     main_ctrl.views['xy_scatter'].panel,
