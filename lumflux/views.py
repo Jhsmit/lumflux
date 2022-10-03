@@ -187,6 +187,7 @@ class hvView(View):
         return self.get_panel()
 
 
+# refactor to tabular;
 class hvPlotView(hvView):
     _type = "hvplot"
 
