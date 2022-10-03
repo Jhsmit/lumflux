@@ -11,13 +11,13 @@ sources:
 
 transforms:
   scatter_src:
-    type: table_source
+    type: getitem
     source: main
-    table: test_data
+    item: test_data
   curve_src:
-    type: table_source
+    type: getitem
     source: main
-    table: lines
+    item: lines
 
 tools:
   xy_hover:

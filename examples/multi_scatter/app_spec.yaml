@@ -8,7 +8,6 @@ sources:
   main:
     type: table
 
-
 opts:
   scatter_opt:
     type: generic

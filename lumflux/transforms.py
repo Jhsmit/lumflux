@@ -1,5 +1,6 @@
 import itertools
 import warnings
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -120,49 +121,51 @@ class SelectTransform(MultiTransform):
             self.updated = True
 
 
-class TableSourceTransform(Transform):
-    """transform which picks the correct table from the source"""
+class GetItemTransform(Transform):
+    """transform which picks the correct item from the source"""
 
-    _type = "table_source"
+    _type = "getitem"
 
     source = param.ClassSelector(class_=Source)
 
-    table = param.Selector(
+    item = param.Selector(
         default=None,
         doc="""
-      The table being transformed. """,
+      The item to select""",
     )
 
-    def __init__(self, table_options=None, **params):
-        self.table_options = table_options
+    def __init__(self, options=None, **params):
+        self.options = options
         super().__init__(**params)
-        self.widgets = {"table": pn.pane.panel(self.param.table)}
+        # use pn.Param? haswidgets?
+        self.widgets = {"item": pn.pane.panel(self.param.item)}
 
-        if self.table_options:
+        if self.options:
             self._update_options()
 
     # todo allow auto generate widgets as in control panels /  views
 
-    def get(self):
+    def get(self) -> Any:
         df = self.source.get(
-            self.table
-        )  # returns None on KeyError #todo change to source.get_table
+            self.item
+        )
         return df
 
     @property
     def source_hash(self):
-        return self.source.hashes.get(self.table, hash(None))
+        # todo update for len 1 sources
+        return self.source.hashes.get(self.item, hash(None))
 
     def _update_options(self):
         # options = self.source.get_tables()
         options = list(self.source.keys())
-        if self.table_options:
-            options = [t for t in options if t in self.table_options]
-        self.param["table"].objects = options
-        if not self.table and options:
-            self.table = options[0]
+        if self.options:
+            options = [t for t in options if t in self.options]
+        self.param["item"].objects = options
+        if not self.item and options:
+            self.item = options[0]
 
-    @param.depends("source.updated", "table", watch=True)
+    @param.depends("source.updated", "item", watch=True)
     def update(self):
         self._update_options()
         if self.update_hash():
