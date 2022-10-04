@@ -1,0 +1,63 @@
+config:
+  title: MWE test app
+
+main_controller:
+  type: base
+  #kwargs: ...
+
+sources:
+  main:
+    type: table
+
+transforms:
+  scatter_src:
+    type: getitem
+    source: main
+    item: test_data
+  curve_src:
+    type: getitem
+    source: main
+    item: lines
+
+tools:
+  xy_hover:
+    type: hover
+    tooltips:
+      - ["x", '@x']
+      - ['y', '@y']
+
+opts:
+  scatter:
+    type: generic
+    tools:
+      - xy_hover
+    size: 10
+    responsive: True
+  line:
+    type: generic
+    tools:
+      - xy_hover
+    responsive: True
+
+
+views:
+  xy_scatter:
+    type: scatter
+    source: scatter_src
+    opts:
+      - scatter
+  xy_line:
+    type: curve
+    source: curve_src
+    y: y1
+    y_objects: !regexp y\d
+    opts:
+      - line
+  bars:
+    type: bars
+    source: curve_src
+
+control_panels:
+    mwe_controller:
+        type: mwe
+        header: MyController

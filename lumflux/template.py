@@ -1,15 +1,21 @@
-import os
+"""
+Based on Holoviz' panel GoldenLayout and Leon van Kouwen's Elvis layout system
+
+https://panel.holoviz.org/reference/templates/GoldenLayout.html
+https://github.com/LeonvanKouwen/elvis
+
+
+"""
+
+
 import pathlib
 import string
 
 import panel as pn
 
 from panel.template import GoldenTemplate
-
-from panel.util import url_path
 from param.parameterized import default_label_formatter
 
-dist_path = "/pyhdx/"
 
 SIDEBAR_WIDTH = 300
 
@@ -47,11 +53,11 @@ class GoldenElvis(object):
         """
 
     VIEW = """
-        {   
+        {
             type: 'component',
             componentName: 'view',
-            componentState: 
-            { 
+            componentState:
+            {
                 model: '{{ embed(roots.%s) }}',
                 %s
             },
@@ -103,7 +109,7 @@ class GoldenElvis(object):
 
         return template
 
-    def view(self, view_name, title=None, width=None, height=None, scrollable=True):
+    def view(self, view, title=None, width=None, height=None, scrollable=True):
         """
         Adds a viewable panel.
         :param view: The panel to show in this golden layout sub section.
@@ -117,12 +123,17 @@ class GoldenElvis(object):
         # composing the jinja2 template, we can add them (see compose function).
 
         # It seems that these unique names cannot start with a number or they cannot be referenced directly
-        # Therefore, currently tmpl.main.append cannot be used as this generates
-        fig_panel = self.main_controller.views[view_name]
-        panel_ID = "ID" + str(id(fig_panel))
-        title = default_label_formatter(title or getattr(fig_panel, "name", None))
+        # Therefore, currently tmpl.main.append cannot be used as this generates ?
+        if isinstance(view, str):
+            fig_panel = self.main_controller.views[view]
+            fig_panel.update()  # initialize (needed? probably not)
 
-        fig_panel.update()  # intialize
+        else:
+            fig_panel = view
+
+        panel_ID = "ID" + str(id(fig_panel))
+        title = title or default_label_formatter(getattr(fig_panel, "name", None))
+
         item = pn.Row(
             fig_panel.panel, sizing_mode="stretch_both"
         )  # Place figure in layout

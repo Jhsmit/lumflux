@@ -55,23 +55,7 @@ class MainController(param.Parameterized):
 
         self.template = None  # Panel template (remove?)
 
-        self.update()  # todo check to see if this is really needed
-
-    # from lumen.target.Target
-    def _rerender(self, *events, invalidate_cache=False):
-        self._update_views(invalidate_cache=invalidate_cache)
-
-    # todo remove?
-    def _update_views(self, invalidate_cache=True, update_views=True, events=[]):
-        warnings.warn("update view is deprecated", DeprecationWarning)
-        for view in self.views.values():
-            view.update()
-
-    @property
-    def panel(self):
-        warnings.warn("panel property is deprecated", DeprecationWarning)
-        # todo remove?
-        return self.template
+        # self.update()  # todo check to see if this is really needed
 
     def update(self):
         for view in self.views.values():

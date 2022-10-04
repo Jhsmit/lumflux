@@ -12,6 +12,8 @@ import numpy as np
 from lumflux.control_panels import ControlPanel
 from lumflux.constructor import AppConstructor
 from lumflux.widgets import ASyncProgressBar
+from lumflux.template import GoldenElvis, ExtendedGoldenTemplate
+from lumflux.theme import ExtendedGoldenDefaultTheme, ExtendedGoldenDarkTheme
 
 
 class MWEControl(ControlPanel):
@@ -90,24 +92,37 @@ df = pd.DataFrame(
     {'x': np.arange(10), 'y': np.random.rand(10)}
 )
 
-
 ctrl.sources['main'].set(df, 'test_data')
-
 df = pd.DataFrame(
     {'x': np.arange(10), 'y1': np.random.rand(10), 'y2': np.random.rand(10), 'y3': np.random.rand(10)}
 )
 ctrl.sources['main'].set(df, 'lines')
 
-mwe_control = ctrl.control_panels['mwe_controller']
 
-buttons = mwe_control.panel
-graphs = pn.Column(
-    ctrl.views['xy_scatter'].panel,
-    ctrl.views['xy_line'].panel,
-    ctrl.views['bars'].panel
+elvis = GoldenElvis(ctrl, ExtendedGoldenTemplate, ExtendedGoldenDefaultTheme, title="My templated app")
+
+app = elvis.compose(
+    elvis.column(
+        elvis.stack(
+            elvis.view('xy_scatter'),
+            elvis.view('xy_line')
+        ),
+        elvis.view('bars')
+        )
 )
 
-app = pn.Row(buttons, graphs)
+
+#
+# mwe_control = ctrl.control_panels['mwe_controller']
+#
+# buttons = mwe_control.panel
+# graphs = pn.Column(
+#     ctrl.views['xy_scatter'].panel,
+#     ctrl.views['xy_line'].panel,
+#     ctrl.views['bars'].panel
+# )
+#
+# app = pn.Row(buttons, graphs)
 
 if __name__ == '__main__':
     pn.serve(app)
