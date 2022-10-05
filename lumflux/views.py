@@ -155,6 +155,7 @@ class hvView(View):
         super().__init__(**params)
         data = self.get_data()
         self._stream = Pipe(data=data)
+        self.dmap = None
         #self._get_params()
 
     @param.depends("source.updated", watch=True)
@@ -165,6 +166,9 @@ class hvView(View):
 
         """
         data = self.get_data()
+        if self.dmap is not None:
+            print("resetting")
+            self.dmap.reset()
         if data is not None:
             self._stream.send(data)
 
@@ -173,11 +177,6 @@ class hvView(View):
         return pn.pane.HoloViews(linked_axes=False, **kwargs)  # linked_axes=False??
 
     def _get_params(self):
-        # df = self.get_data()
-        # if df is None:
-        #     df = self.empty_df
-        #
-        # self._stream = Pipe(data=df)
         return dict(
             object=self.get_plot(), sizing_mode="stretch_both"
         )  # todo update sizing mode
@@ -209,21 +208,28 @@ class hvPlotView(hvView):
 
         """
 
+        # todo respnsive and otherkwargs from opts
         def func(data, kind, **kwargs):
-            return hvPlotTabular(data)(kind=kind, **kwargs)
+            return hvPlotTabular(data)(kind=kind, **kwargs, responsive=True, framewise=True)
 
         pfunc = partial(func, kind=self.kind, **self.kwargs)
 
         plot = hv.DynamicMap(pfunc, streams=[self._stream])
 
+        self.dmap = plot
+
         print(self.opts_dict)
-        plot = plot.apply.opts(**self.opts_dict)
+        # plot = plot.apply.opts(**self.opts_dict)
 
         return plot
 
     @property
-    def empty_df(self):
-        df = pd.DataFrame({"null": [np.nan], "y2": [np.nan]})
+    def empty_df(self) -> pd.DataFrame:
+        # Note: if only {'x': [np.nan]} is given as data; the result is scatter; otherwise NDoverlay
+
+        df_columns = self.kwargs.keys() & {'x', 'y'}
+        d = {self.kwargs[k]: [np.nan] for k in df_columns} or {'y': [np.nan], 'x': [np.nan]}
+        df = pd.DataFrame(d)
         return df
 
 

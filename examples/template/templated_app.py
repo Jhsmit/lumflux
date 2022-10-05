@@ -22,6 +22,10 @@ class MWEControl(ControlPanel):
 
     gen_data = param.Action(lambda self: self._action_button())
 
+    loc = param.Number(default=2., bounds=(-1, 3), doc="Center position for histogram data")
+
+    update_hist = param.Action(lambda self: self._hist_button())
+
     test = param.Action(lambda self: self._test_button())
 
     _not_a_number = param.Number(123)
@@ -54,6 +58,11 @@ class MWEControl(ControlPanel):
             time.sleep(0.25*np.random.rand())
 
         pbar.reset()
+
+    def _hist_button(self):
+        print(f'Updating hist location to {self.loc:.1f}')
+        df = pd.DataFrame({'x': np.random.normal(self.loc, 0.1, size=int(np.random.uniform(100, 1000)))})
+        self.sources['hist_src'].set(df)
 
     def generate_widgets(self, **kwargs) -> dict:
         """Generates widgets
@@ -98,6 +107,9 @@ df = pd.DataFrame(
 )
 ctrl.sources['main'].set(df, 'lines')
 
+df = pd.DataFrame({'x': np.random.normal(2, 0.1, size=1000)})
+ctrl.sources['hist_src'].set(df)
+
 
 elvis = GoldenElvis(ctrl, ExtendedGoldenTemplate, ExtendedGoldenDefaultTheme, title="My templated app")
 
@@ -107,8 +119,11 @@ app = elvis.compose(
             elvis.view('xy_scatter'),
             elvis.view('xy_line')
         ),
-        elvis.view('bars')
+        elvis.stack(
+            elvis.view('hist'),
+            elvis.view('bars')
         )
+    )
 )
 
 

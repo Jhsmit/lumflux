@@ -8,6 +8,8 @@ main_controller:
 sources:
   main:
     type: table
+  hist_src:
+    type: table
 
 transforms:
   scatter_src:
@@ -27,17 +29,18 @@ tools:
       - ['y', '@y']
 
 opts:
+  global_opt:
+    type: generic
+    responsive: True
   scatter:
     type: generic
     tools:
       - xy_hover
     size: 10
-    responsive: True
   line:
     type: generic
     tools:
       - xy_hover
-    responsive: True
 
 
 views:
@@ -45,6 +48,7 @@ views:
     type: scatter
     source: scatter_src
     opts:
+      - global_opt
       - scatter
   xy_line:
     type: curve
@@ -52,10 +56,23 @@ views:
     y: y1
     y_objects: !regexp y\d
     opts:
+      - global_opt
       - line
   bars:
     type: bars
     source: curve_src
+    opts:
+      - global_opt
+  hist:
+    type: hvplot
+    source: hist_src
+    kind: hist
+    bins: fd
+    opts:
+      - global_opt
+      - labels:
+          type: generic
+          xlabel: Position
 
 control_panels:
     mwe_controller:

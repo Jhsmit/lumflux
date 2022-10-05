@@ -14,6 +14,9 @@ custom_dark_json_theme = DARK_STYLE.create_bokeh_theme()
 custom_dark_json_theme["attrs"]["ColorBar"]["background_fill_alpha"] = 0
 
 
+# todo set pn config colors
+# pn.config.loading_color = ...
+
 class ExtendedGoldenDefaultTheme(pn.template.golden.GoldenDefaultTheme):
 
     css = param.Filename(

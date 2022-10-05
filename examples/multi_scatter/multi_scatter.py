@@ -47,14 +47,18 @@ class ScatterControl(ControlPanel):
         df = pd.DataFrame(data, index=x, columns=columns)
         self.sources['main'].set(df)
 
+    def _action_debug(self):
+        print('debugging')
+
+        view = self.views['xy_scatter']
+        print('break')
+
 
 ctr = AppConstructor(errors='warn')
 main_ctrl = ctr.parse_yaml("app_spec.yaml")
 
 df = pd.read_csv('pd_dataframe.csv', index_col=0)
-main_ctrl.sources['main'].set(df)
-
-
+# main_ctrl.sources['main'].set(df)
 
 df = main_ctrl.sources['main'].get()
 
